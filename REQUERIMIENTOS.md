@@ -3,7 +3,7 @@
 **Proyecto:** Sistema Web para la Gestión y Venta de Componentes de Hardware
 **Grupo:** Grupo 5 · Politécnico Grancolombiano · 2026
 **Stack:** PHP 8 + SQLite + Nginx · Despliegue en AWS Lightsail
-**Propósito de este documento:** servir como guía técnica para implementar el sistema con **Claude Code** y **VS Code**, y desplegarlo en un servidor **Lightsail**.
+**Propósito de este documento:** servir como guía técnica para implementar el sistema y desplegarlo en un servidor **Lightsail**.
 
 ---
 
@@ -263,12 +263,3 @@ sudo certbot --nginx -d tudominio.com
 
 ---
 
-## 11. Checklist de entrega
-
-- [ ] Código subido a GitHub.
-- [ ] Aplicación corriendo en local sin errores.
-- [ ] Instancia Lightsail creada con IP estática y puerto 80 abierto.
-- [ ] Nginx + PHP-FPM + SQLite instalados y configurados.
-- [ ] Aplicación accesible públicamente vía `http://TU_IP_ESTATICA/`.
-- [ ] CRUD verificado en producción (crear, listar, editar, eliminar).
-- [ ] Enlace de la aplicación desplegada incluido en el documento del proyecto.
