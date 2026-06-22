@@ -1,0 +1,8 @@
+# Base de datos generada en tiempo de ejecución
+database/tienda.db
+database/*.db-journal
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+*.log
