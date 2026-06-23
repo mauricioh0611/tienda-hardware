@@ -18,5 +18,6 @@ if (ini_get('session.use_cookies')) {
 // Destruir la sesión
 session_destroy();
 
-header('Location: /login.php?msg=' . urlencode('Has cerrado sesión correctamente.') . '&tipo=ok');
+flash('Has cerrado sesión correctamente.', 'ok');
+header('Location: /login.php');
 exit;

@@ -50,6 +50,19 @@ function db(): PDO
             );
         ");
 
+        // Tabla de auditoría
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS auditoria (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario_id  INTEGER NOT NULL,
+                usuario_nombre TEXT NOT NULL,
+                accion      TEXT NOT NULL,
+                producto_id INTEGER,
+                detalle     TEXT,
+                creado_en   TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+        ");
+
         // Usuario administrador por defecto (solo la primera vez)
         $hayUsuarios = (int) $pdo->query('SELECT COUNT(*) AS c FROM usuarios')->fetch()['c'];
         if ($hayUsuarios === 0) {
@@ -111,7 +124,8 @@ function requiere_autenticacion(): void
 {
     sesion_iniciar();
     if (!isset($_SESSION['usuario_id'])) {
-        header('Location: /login.php?msg=' . urlencode('Debes iniciar sesión primero.') . '&tipo=error');
+        flash('Debes iniciar sesión primero.', 'error');
+        header('Location: /login.php');
         exit;
     }
 }
@@ -152,4 +166,93 @@ function registrar_usuario(string $nombre, string $email, string $password): boo
     $stmt = $pdo->prepare('INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)');
     $stmt->execute([$nombre, $email, $hash]);
     return true;
+}
+
+// ============================================================
+// CSRF Protection
+// ============================================================
+
+/**
+ * Genera un token CSRF y lo guarda en la sesión.
+ * Si ya existe uno válido, lo reutiliza.
+ */
+function csrf_token(): string
+{
+    sesion_iniciar();
+    if (empty($_SESSION['_csrf'])) {
+        $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['_csrf'];
+}
+
+/**
+ * Genera un campo hidden HTML con el token CSRF.
+ */
+function csrf_field(): string
+{
+    return '<input type="hidden" name="_csrf" value="' . csrf_token() . '">';
+}
+
+/**
+ * Valida el token CSRF recibido (por POST o como argumento).
+ * Termina la ejecución si es inválido.
+ */
+function csrf_validate(?string $token = null): void
+{
+    sesion_iniciar();
+    $token = $token ?? ($_POST['_csrf'] ?? '');
+    if ($token === '' || !hash_equals($_SESSION['_csrf'] ?? '', $token)) {
+        flash('Error de seguridad: token inválido. Intenta de nuevo.', 'error');
+        header('Location: /index.php');
+        exit;
+    }
+}
+
+// ============================================================
+// Flash Messages (vía sesión)
+// ============================================================
+
+/**
+ * Guarda un mensaje flash en la sesión.
+ */
+function flash(string $msg, string $tipo = 'ok'): void
+{
+    sesion_iniciar();
+    $_SESSION['_flash'] = ['msg' => $msg, 'tipo' => $tipo];
+}
+
+/**
+ * Recupera y elimina el mensaje flash de la sesión.
+ * Devuelve ['msg' => '', 'tipo' => 'ok'] si no hay mensaje.
+ */
+function flash_recuperar(): array
+{
+    sesion_iniciar();
+    $flash = $_SESSION['_flash'] ?? ['msg' => '', 'tipo' => 'ok'];
+    unset($_SESSION['_flash']);
+    return $flash;
+}
+
+// ============================================================
+// Auditoría
+// ============================================================
+
+/**
+ * Registra una acción en la tabla de auditoría.
+ */
+function auditoria_registrar(string $accion, ?int $producto_id = null, string $detalle = ''): void
+{
+    sesion_iniciar();
+    $pdo = db();
+    $stmt = $pdo->prepare(
+        'INSERT INTO auditoria (usuario_id, usuario_nombre, accion, producto_id, detalle)
+         VALUES (?, ?, ?, ?, ?)'
+    );
+    $stmt->execute([
+        $_SESSION['usuario_id'] ?? 0,
+        $_SESSION['usuario_nombre'] ?? 'Desconocido',
+        $accion,
+        $producto_id,
+        $detalle
+    ]);
 }

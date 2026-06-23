@@ -10,7 +10,8 @@ $st->execute([$id]);
 $p = $st->fetch();
 
 if (!$p) {
-    header('Location: /index.php?' . http_build_query(['msg' => 'Producto no encontrado.', 'tipo' => 'error']));
+    flash('Producto no encontrado.', 'error');
+    header('Location: /index.php');
     exit;
 }
 
@@ -40,6 +41,7 @@ $categorias = ['Procesadores', 'Tarjetas Gráficas', 'Memorias RAM', 'Almacenami
     <section class="tarjeta">
         <h2>Editar Producto</h2>
         <form action="/guardar.php" method="post">
+            <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
 
             <div class="fila">

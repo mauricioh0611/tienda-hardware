@@ -9,14 +9,17 @@ if (isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-$msg  = $_GET['msg'] ?? '';
-$tipo = $_GET['tipo'] ?? 'ok';
+$flash = flash_recuperar();
+$msg   = $flash['msg'];
+$tipo  = $flash['tipo'];
 
 // Procesar formulario de registro
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre   = trim($_POST['nombre'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
+    csrf_validate();
+
+    $nombre    = trim($_POST['nombre'] ?? '');
+    $email     = trim($_POST['email'] ?? '');
+    $password  = $_POST['password'] ?? '';
     $confirmar = $_POST['confirmar'] ?? '';
 
     $errores = [];
@@ -32,19 +35,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Iniciar sesión automáticamente
             $usuario = verificar_credenciales($email, $password);
             if ($usuario) {
+                session_regenerate_id(true);
+                $_SESSION['_csrf'] = bin2hex(random_bytes(32));
                 $_SESSION['usuario_id']    = $usuario['id'];
                 $_SESSION['usuario_nombre'] = $usuario['nombre'];
                 $_SESSION['usuario_email']  = $usuario['email'];
             }
-            header('Location: /index.php?msg=' . urlencode('Cuenta creada correctamente. ¡Bienvenido!') . '&tipo=ok');
+            flash('Cuenta creada correctamente. ¡Bienvenido!', 'ok');
+            header('Location: /index.php');
             exit;
         } else {
             $errores[] = $resultado;
         }
     }
 
-    $msg  = implode(' ', $errores);
-    $tipo = 'error';
+    flash(implode(' ', $errores), 'error');
+    header('Location: /registro.php');
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -71,16 +78,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form action="/registro.php" method="post">
+            <?= csrf_field() ?>
+
             <div>
                 <label for="nombre">Nombre completo *</label>
                 <input type="text" id="nombre" name="nombre" required maxlength="100"
-                       value="<?= e($_POST['nombre'] ?? '') ?>" placeholder="Tu nombre">
+                       placeholder="Tu nombre">
             </div>
 
             <div>
                 <label for="email">Correo electrónico *</label>
                 <input type="email" id="email" name="email" required maxlength="120"
-                       value="<?= e($_POST['email'] ?? '') ?>" placeholder="ejemplo@correo.com">
+                       placeholder="ejemplo@correo.com">
             </div>
 
             <div class="fila">

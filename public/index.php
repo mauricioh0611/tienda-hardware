@@ -4,15 +4,62 @@ require __DIR__ . '/../src/db.php';
 requiere_autenticacion();
 
 $pdo = db();
-$productos = $pdo->query('SELECT * FROM productos ORDER BY creado_en DESC, id DESC')->fetchAll();
 
-// Mensajes de retroalimentación
-$msg = $_GET['msg'] ?? '';
-$tipo = $_GET['tipo'] ?? 'ok';
+// ============================================================
+// KPIs — métricas del dashboard
+// ============================================================
+$totalProductos = (int) $pdo->query('SELECT COUNT(*) AS c FROM productos')->fetch()['c'];
+$stockBajo      = (int) $pdo->query('SELECT COUNT(*) AS c FROM productos WHERE stock <= stock_min')->fetch()['c'];
+$valorTotal     = (float) $pdo->query('SELECT COALESCE(SUM(precio * stock), 0) AS v FROM productos')->fetch()['v'];
 
-// Categorías sugeridas para el selector
+// ============================================================
+// Paginación y búsqueda
+// ============================================================
+$pagina     = max(1, (int) ($_GET['p'] ?? 1));
+$porPagina  = 10;
+$offset     = ($pagina - 1) * $porPagina;
+
+$busqueda   = trim($_GET['q'] ?? '');
+$categoriaFiltro = trim($_GET['cat'] ?? '');
+
+$where  = [];
+$params = [];
+
+if ($busqueda !== '') {
+    $where[]  = '(nombre LIKE ? OR marca LIKE ? OR descripcion LIKE ?)';
+    $params[] = "%$busqueda%";
+    $params[] = "%$busqueda%";
+    $params[] = "%$busqueda%";
+}
+if ($categoriaFiltro !== '') {
+    $where[]  = 'categoria = ?';
+    $params[] = $categoriaFiltro;
+}
+
+$sqlWhere = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+// Total de resultados (para paginación)
+$stCount = $pdo->prepare("SELECT COUNT(*) AS c FROM productos $sqlWhere");
+$stCount->execute($params);
+$totalResultados = (int) $stCount->fetch()['c'];
+$totalPaginas    = max(1, (int) ceil($totalResultados / $porPagina));
+
+// Productos de la página actual
+$sql = "SELECT * FROM productos $sqlWhere ORDER BY creado_en DESC, id DESC LIMIT ? OFFSET ?";
+$params[] = $porPagina;
+$params[] = $offset;
+$st = $pdo->prepare($sql);
+$st->execute($params);
+$productos = $st->fetchAll();
+
+// Categorías para el filtro y formulario
 $categorias = ['Procesadores', 'Tarjetas Gráficas', 'Memorias RAM', 'Almacenamiento',
                'Fuentes de Poder', 'Tarjetas Madre', 'Refrigeración', 'Periféricos', 'General'];
+
+// Mensaje flash
+$flash = flash_recuperar();
+$msg   = $flash['msg'];
+$tipo  = $flash['tipo'];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -39,54 +86,107 @@ $categorias = ['Procesadores', 'Tarjetas Gráficas', 'Memorias RAM', 'Almacenami
         <div class="alerta alerta-<?= e($tipo) ?>"><?= e($msg) ?></div>
     <?php endif; ?>
 
+    <!-- ====================== KPIs ====================== -->
+    <section class="kpis">
+        <div class="kpi-card">
+            <span class="kpi-valor"><?= $totalProductos ?></span>
+            <span class="kpi-label">Productos</span>
+        </div>
+        <div class="kpi-card kpi-peligro">
+            <span class="kpi-valor"><?= $stockBajo ?></span>
+            <span class="kpi-label">Stock Bajo</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-valor"><?= precio_cop($valorTotal) ?></span>
+            <span class="kpi-label">Valor Inventario</span>
+        </div>
+    </section>
+
     <!-- ====================== LISTADO ====================== -->
     <section class="tarjeta">
-        <h2>Inventario de Productos</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Marca</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php if (!$productos): ?>
-                <tr><td colspan="6">No hay productos registrados todavía.</td></tr>
-            <?php else: foreach ($productos as $p): ?>
-                <tr>
-                    <td><strong><?= e($p['nombre']) ?></strong></td>
-                    <td><?= e($p['categoria']) ?></td>
-                    <td><?= e($p['marca']) ?: '—' ?></td>
-                    <td><?= e(precio_cop((float) $p['precio'])) ?></td>
-                    <td>
-                        <?php if ((int) $p['stock'] <= (int) $p['stock_min']): ?>
-                            <span class="badge badge-bajo"><?= (int) $p['stock'] ?> · Bajo</span>
-                        <?php else: ?>
-                            <span class="badge badge-ok"><?= (int) $p['stock'] ?></span>
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <div class="acciones">
-                            <a class="btn btn-gris btn-sm" href="/editar.php?id=<?= (int) $p['id'] ?>">Editar</a>
-                            <a class="btn btn-rojo btn-sm"
-                               href="/eliminar.php?id=<?= (int) $p['id'] ?>"
-                               onclick="return confirm('¿Eliminar este producto?');">Eliminar</a>
-                        </div>
-                    </td>
-                </tr>
-            <?php endforeach; endif; ?>
-            </tbody>
-        </table>
+        <div class="listado-header">
+            <h2>Inventario de Productos</h2>
+            <!-- Formulario de búsqueda -->
+            <form class="buscador" method="get">
+                <input type="text" name="q" placeholder="Buscar producto, marca..." value="<?= e($busqueda) ?>">
+                <select name="cat">
+                    <option value="">Todas las categorías</option>
+                    <?php foreach ($categorias as $c): ?>
+                        <option value="<?= e($c) ?>" <?= $c === $categoriaFiltro ? 'selected' : '' ?>><?= e($c) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="btn btn-verde btn-sm">Buscar</button>
+                <?php if ($busqueda !== '' || $categoriaFiltro !== ''): ?>
+                    <a href="/index.php" class="btn btn-gris btn-sm">Limpiar</a>
+                <?php endif; ?>
+            </form>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Marca</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (!$productos): ?>
+                    <tr><td colspan="6">No se encontraron productos.</td></tr>
+                <?php else: foreach ($productos as $p): ?>
+                    <tr>
+                        <td><strong><?= e($p['nombre']) ?></strong></td>
+                        <td><?= e($p['categoria']) ?></td>
+                        <td><?= e($p['marca']) ?: '—' ?></td>
+                        <td><?= e(precio_cop((float) $p['precio'])) ?></td>
+                        <td>
+                            <?php if ((int) $p['stock'] <= (int) $p['stock_min']): ?>
+                                <span class="badge badge-bajo"><?= (int) $p['stock'] ?> · Bajo</span>
+                            <?php else: ?>
+                                <span class="badge badge-ok"><?= (int) $p['stock'] ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <div class="acciones">
+                                <a class="btn btn-gris btn-sm" href="/editar.php?id=<?= (int) $p['id'] ?>">Editar</a>
+                                <form method="post" action="/eliminar.php" style="display:inline"
+                                      onsubmit="return confirm('¿Eliminar «<?= e($p['nombre']) ?>»?')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
+                                    <button type="submit" class="btn btn-rojo btn-sm">Eliminar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <?php if ($totalPaginas > 1): ?>
+        <div class="paginacion">
+            <?php if ($pagina > 1): ?>
+                <a href="?p=<?= $pagina - 1 ?>&q=<?= urlencode($busqueda) ?>&cat=<?= urlencode($categoriaFiltro) ?>" class="btn btn-gris btn-sm">← Anterior</a>
+            <?php endif; ?>
+            <span class="pagina-info">Página <?= $pagina ?> de <?= $totalPaginas ?> (<?= $totalResultados ?> resultados)</span>
+            <?php if ($pagina < $totalPaginas): ?>
+                <a href="?p=<?= $pagina + 1 ?>&q=<?= urlencode($busqueda) ?>&cat=<?= urlencode($categoriaFiltro) ?>" class="btn btn-gris btn-sm">Siguiente →</a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     </section>
 
     <!-- ====================== FORMULARIO ====================== -->
     <section class="tarjeta">
         <h2>Registrar Producto</h2>
         <form action="/guardar.php" method="post">
+            <?= csrf_field() ?>
+
             <div class="fila">
                 <div>
                     <label for="nombre">Nombre del producto *</label>

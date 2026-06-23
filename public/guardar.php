@@ -8,6 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Validar token CSRF
+csrf_validate();
+
 // --- Recolección y validación de datos ---
 $id          = isset($_POST['id']) && $_POST['id'] !== '' ? (int) $_POST['id'] : null;
 $nombre      = trim($_POST['nombre'] ?? '');
@@ -24,8 +27,8 @@ if ($precio < 0)           $errores[] = 'El precio no puede ser negativo.';
 if ($stock < 0)            $errores[] = 'El stock no puede ser negativo.';
 
 if ($errores) {
-    $q = http_build_query(['msg' => implode(' ', $errores), 'tipo' => 'error']);
-    header('Location: /index.php?' . $q);
+    flash(implode(' ', $errores), 'error');
+    header('Location: /index.php');
     exit;
 }
 
@@ -38,8 +41,19 @@ if ($id === null) {
          VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     $st->execute([$nombre, $categoria, $marca, $precio, $stock, $stock_min, $descripcion]);
-    $msg = 'Producto registrado correctamente.';
+    $nuevoId = (int) $pdo->lastInsertId();
+    auditoria_registrar('crear', $nuevoId, "Producto: $nombre");
+    flash('Producto registrado correctamente.', 'ok');
 } else {
+    // Verificar que el producto exista
+    $st = $pdo->prepare('SELECT nombre FROM productos WHERE id = ?');
+    $st->execute([$id]);
+    $existente = $st->fetch();
+    if (!$existente) {
+        flash('Producto no encontrado.', 'error');
+        header('Location: /index.php');
+        exit;
+    }
     // Actualizar
     $st = $pdo->prepare(
         'UPDATE productos
@@ -47,9 +61,9 @@ if ($id === null) {
           WHERE id = ?'
     );
     $st->execute([$nombre, $categoria, $marca, $precio, $stock, $stock_min, $descripcion, $id]);
-    $msg = 'Producto actualizado correctamente.';
+    auditoria_registrar('editar', $id, "Producto: $nombre");
+    flash('Producto actualizado correctamente.', 'ok');
 }
 
-$q = http_build_query(['msg' => $msg, 'tipo' => 'ok']);
-header('Location: /index.php?' . $q);
+header('Location: /index.php');
 exit;

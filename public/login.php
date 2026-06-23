@@ -9,11 +9,14 @@ if (isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-$msg  = $_GET['msg'] ?? '';
-$tipo = $_GET['tipo'] ?? 'ok';
+$flash = flash_recuperar();
+$msg   = $flash['msg'];
+$tipo  = $flash['tipo'];
 
 // Procesar formulario de login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_validate();
+
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
@@ -24,18 +27,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errores) {
         $usuario = verificar_credenciales($email, $password);
         if ($usuario) {
+            // Regenerar ID de sesión para prevenir session fixation
+            session_regenerate_id(true);
+            // Renovar token CSRF
+            $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+
             $_SESSION['usuario_id']    = $usuario['id'];
             $_SESSION['usuario_nombre'] = $usuario['nombre'];
             $_SESSION['usuario_email']  = $usuario['email'];
-            header('Location: /index.php?msg=' . urlencode('Bienvenido de nuevo, ' . $usuario['nombre'] . '.') . '&tipo=ok');
+            flash('Bienvenido de nuevo, ' . $usuario['nombre'] . '.', 'ok');
+            header('Location: /index.php');
             exit;
         } else {
             $errores[] = 'Correo o contraseña incorrectos.';
         }
     }
 
-    $msg  = implode(' ', $errores);
-    $tipo = 'error';
+    flash(implode(' ', $errores), 'error');
+    header('Location: /login.php');
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -62,10 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form action="/login.php" method="post">
+            <?= csrf_field() ?>
+
             <div>
                 <label for="email">Correo electrónico *</label>
                 <input type="email" id="email" name="email" required maxlength="120"
-                       value="<?= e($_POST['email'] ?? '') ?>" placeholder="ejemplo@correo.com">
+                       placeholder="ejemplo@correo.com">
             </div>
 
             <div>

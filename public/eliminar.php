@@ -3,18 +3,36 @@ require __DIR__ . '/../src/db.php';
 
 requiere_autenticacion();
 
-$id = (int) ($_GET['id'] ?? 0);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    flash('Acción no permitida.', 'error');
+    header('Location: /index.php');
+    exit;
+}
+
+// Validar token CSRF
+csrf_validate();
+
+$id = (int) ($_POST['id'] ?? 0);
 
 if ($id > 0) {
     $pdo = db();
-    $st = $pdo->prepare('DELETE FROM productos WHERE id = ?');
+
+    // Obtener datos del producto antes de eliminar (para auditoría)
+    $st = $pdo->prepare('SELECT nombre FROM productos WHERE id = ?');
     $st->execute([$id]);
-    $msg = 'Producto eliminado correctamente.';
-    $tipo = 'ok';
+    $producto = $st->fetch();
+
+    if ($producto) {
+        $st = $pdo->prepare('DELETE FROM productos WHERE id = ?');
+        $st->execute([$id]);
+        auditoria_registrar('eliminar', $id, "Producto: {$producto['nombre']}");
+        flash('Producto eliminado correctamente.', 'ok');
+    } else {
+        flash('Producto no encontrado.', 'error');
+    }
 } else {
-    $msg = 'Identificador inválido.';
-    $tipo = 'error';
+    flash('Identificador inválido.', 'error');
 }
 
-header('Location: /index.php?' . http_build_query(['msg' => $msg, 'tipo' => $tipo]));
+header('Location: /index.php');
 exit;
