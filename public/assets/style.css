@@ -1,173 +1,24 @@
 /* =========================================================
-   Tema visual del Sistema de Gestión de Tienda de Hardware
-   Paleta tomada de las interfaces del documento (tema verde)
+   Estilos mínimos complementarios para Tailwind CSS
+   Solo scrollbar personalizado + animaciones extras
    ========================================================= */
-:root {
-    --verde-navbar: #2E9E2E;   /* Encabezado / barra superior */
-    --verde-oscuro: #198754;   /* Botones primarios (Guardar / Ver) */
-    --verde-hover:  #157347;   /* Hover de botones verdes */
-    --rojo:         #DC3545;   /* Botón eliminar / peligro */
-    --rojo-hover:   #BB2D3B;
-    --gris:         #6C757D;   /* Botón secundario */
-    --gris-hover:   #5C636A;
-    --fondo:        #F8F9FA;   /* Fondo general */
-    --texto:        #212529;
-    --borde:        #DEE2E6;
+
+/* Scrollbar personalizado (Webkit) */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+/* Animación para flash messages */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down {
+    animation: slideDown .35s ease-out;
 }
 
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--fondo);
-    color: var(--texto);
-}
-
-/* ---- Barra superior ---- */
-.navbar {
-    background: var(--verde-navbar);
-    color: #fff;
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.15);
-}
-.navbar .logo {
-    width: 18px; height: 18px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #bdf5bd, #1d7a1d);
-}
-.navbar h1 { font-size: 1.15rem; margin: 0; font-weight: 600; }
-
-/* ---- Contenedor ---- */
-.contenedor { max-width: 1080px; margin: 28px auto; padding: 0 18px; }
-
-.tarjeta {
-    background: #fff;
-    border: 1px solid var(--borde);
-    border-radius: 10px;
-    padding: 22px 24px;
-    margin-bottom: 26px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.05);
-}
-.tarjeta h2 { margin: 0 0 16px; font-size: 1.35rem; }
-
-/* ---- Tabla ---- */
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--borde); }
-th { font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; color: #495057; }
-tbody tr:hover { background: #f1f8f1; }
-
-/* ---- Badges de stock ---- */
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .78rem; font-weight: 600; }
-.badge-ok   { background: #d1e7dd; color: #0f5132; }
-.badge-bajo { background: #f8d7da; color: #842029; }
-
-/* ---- Formularios ---- */
-label { display: block; font-size: .85rem; font-weight: 600; margin: 12px 0 4px; }
-input, select, textarea {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--borde);
-    border-radius: 7px;
-    font-size: .95rem;
-    font-family: inherit;
-}
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--verde-oscuro);
-    box-shadow: 0 0 0 3px rgba(25,135,84,.15);
-}
-textarea { min-height: 80px; resize: vertical; }
-.fila { display: flex; gap: 16px; flex-wrap: wrap; }
-.fila > div { flex: 1; min-width: 180px; }
-
-/* ---- Botones ---- */
-.btn {
-    display: inline-block;
-    border: none;
-    border-radius: 7px;
-    padding: 9px 18px;
-    font-size: .9rem;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background .15s ease;
-}
-.btn-verde { background: var(--verde-oscuro); }
-.btn-verde:hover { background: var(--verde-hover); }
-.btn-rojo  { background: var(--rojo); }
-.btn-rojo:hover  { background: var(--rojo-hover); }
-.btn-gris  { background: var(--gris); }
-.btn-gris:hover  { background: var(--gris-hover); }
-.btn-sm { padding: 5px 12px; font-size: .8rem; }
-
-/* ---- Alertas ---- */
-.alerta {
-    padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; font-size: .92rem;
-}
-.alerta-ok   { background: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
-.alerta-error{ background: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
-
-.acciones { display: flex; gap: 8px; }
-.mt { margin-top: 18px; }
-footer { text-align: center; color: #6c757d; font-size: .82rem; padding: 24px; }
-
-/* ---- Autenticación ---- */
-.tarjeta-auth { max-width: 480px; margin-left: auto; margin-right: auto; }
-.btn-block { width: 100%; text-align: center; }
-.auth-link { text-align: center; margin-top: 18px; font-size: .9rem; }
-.auth-link a { color: var(--verde-oscuro); font-weight: 600; text-decoration: none; }
-.auth-link a:hover { text-decoration: underline; }
-
-/* ---- Usuario en navbar ---- */
-.navbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.navbar-user { font-size: .85rem; opacity: .95; }
-.navbar .btn-outline {
-    background: transparent; border: 1.5px solid #fff; color: #fff;
-    padding: 5px 14px; border-radius: 6px; font-size: .82rem; font-weight: 600;
-    text-decoration: none; transition: background .15s ease;
-}
-.navbar .btn-outline:hover { background: rgba(255,255,255,.2); }
-
-/* ---- KPIs (Dashboard) ---- */
-.kpis { display: flex; gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
-.kpi-card {
-    flex: 1; min-width: 160px;
-    background: #fff; border: 1px solid var(--borde); border-radius: 10px;
-    padding: 20px 22px; text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.05);
-}
-.kpi-valor { display: block; font-size: 1.6rem; font-weight: 700; color: var(--verde-oscuro); }
-.kpi-label { display: block; font-size: .8rem; color: #6c757d; margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
-.kpi-peligro .kpi-valor { color: var(--rojo); }
-
-/* ---- Buscador ---- */
-.listado-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-.listado-header h2 { margin: 0; }
-.buscador { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.buscador input[type="text"] { width: auto; min-width: 180px; }
-.buscador select { width: auto; min-width: 140px; }
-
-/* ---- Tabla scroll horizontal ---- */
-.table-wrapper { overflow-x: auto; }
-
-/* ---- Paginación ---- */
-.paginacion {
-    display: flex; justify-content: center; align-items: center;
-    gap: 12px; margin-top: 18px; padding-top: 14px;
-    border-top: 1px solid var(--borde);
-}
-.pagina-info { font-size: .85rem; color: #6c757d; }
-
-/* ---- Media Queries (Responsive) ---- */
-@media (max-width: 768px) {
-    .kpis { flex-direction: column; }
-    .listado-header { flex-direction: column; }
-    .buscador { width: 100%; }
-    .buscador input[type="text"],
-    .buscador select { width: 100%; min-width: unset; }
-    .navbar h1 { font-size: .95rem; }
+/* Transición suave para hover en filas de tabla */
+tbody tr {
+    transition: background-color .15s ease;
 }

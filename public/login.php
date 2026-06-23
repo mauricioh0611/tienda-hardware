@@ -54,52 +54,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Tienda de Hardware</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary:  { DEFAULT: '#2E9E2E', dark: '#198754', darker: '#157347' },
+                        danger:   { DEFAULT: '#DC3545', dark: '#BB2D3B' },
+                        muted:    { DEFAULT: '#6C757D', dark: '#5C636A' },
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="/assets/style.css">
 </head>
-<body>
+<body class="bg-[#F8F9FA] text-[#212529] font-sans antialiased min-h-screen flex flex-col">
 
-<header class="navbar">
-    <span class="logo"></span>
-    <h1>Sistema de Gestión - Tienda de Hardware</h1>
-</header>
+    <!-- ==================== NAVBAR ==================== -->
+    <header class="bg-[#2E9E2E] text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+            <div class="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-green-200 to-green-700 flex-shrink-0"></div>
+            <h1 class="text-base sm:text-lg font-semibold truncate">Sistema de Gestión - Tienda de Hardware</h1>
+        </div>
+    </header>
 
-<main class="contenedor">
-    <section class="tarjeta tarjeta-auth">
-        <h2>Iniciar Sesión</h2>
+    <!-- ==================== MAIN ==================== -->
+    <main class="flex-1 flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-md">
 
-        <?php if ($msg): ?>
-            <div class="alerta alerta-<?= e($tipo) ?>"><?= e($msg) ?></div>
-        <?php endif; ?>
+            <!-- Flash message -->
+            <?php if ($msg): ?>
+            <div class="animate-slide-down mb-5 px-4 py-3 rounded-lg border text-sm font-medium
+                <?= $tipo === 'ok'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-red-50 border-red-200 text-red-800' ?>">
+                <?= e($msg) ?>
+            </div>
+            <?php endif; ?>
 
-        <form action="/login.php" method="post">
-            <?= csrf_field() ?>
+            <!-- Card -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-200 to-green-700 mx-auto mb-3"></div>
+                    <h2 class="text-xl font-bold text-gray-900">Iniciar Sesión</h2>
+                    <p class="text-sm text-gray-500 mt-1">Accede al sistema de gestión</p>
+                </div>
 
-            <div>
-                <label for="email">Correo electrónico *</label>
-                <input type="email" id="email" name="email" required maxlength="120"
-                       placeholder="ejemplo@correo.com">
+                <form action="/login.php" method="post">
+                    <?= csrf_field() ?>
+
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico</label>
+                        <input type="email" id="email" name="email" required maxlength="120"
+                               placeholder="ejemplo@correo.com"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#198754]/30 focus:border-[#198754] outline-none">
+                    </div>
+
+                    <div class="mb-5">
+                        <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+                        <input type="password" id="password" name="password" required minlength="6"
+                               placeholder="Mínimo 6 caracteres"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#198754]/30 focus:border-[#198754] outline-none">
+                    </div>
+
+                    <button type="submit"
+                            class="w-full py-2.5 text-sm font-semibold text-white bg-[#198754] hover:bg-[#157347] rounded-lg shadow-sm transition">Iniciar Sesión</button>
+                </form>
+
+                <p class="text-center text-sm text-gray-500 mt-5">
+                    ¿No tienes cuenta?
+                    <a href="/registro.php" class="font-semibold text-[#198754] hover:text-[#157347] transition">Regístrate aquí</a>
+                </p>
             </div>
 
-            <div>
-                <label for="password">Contraseña *</label>
-                <input type="password" id="password" name="password" required minlength="6"
-                       placeholder="Mínimo 6 caracteres">
-            </div>
+            <!-- Test user hint -->
+            <p class="text-center text-xs text-gray-400 mt-4">
+                Usuario de prueba: <span class="font-mono">admin@tienda.com</span> / <span class="font-mono">admin123</span>
+            </p>
+        </div>
+    </main>
 
-            <div class="mt">
-                <button type="submit" class="btn btn-verde btn-block">Iniciar Sesión</button>
-            </div>
-        </form>
-
-        <p class="auth-link">
-            ¿No tienes cuenta? <a href="/registro.php">Regístrate aquí</a>
-        </p>
-    </section>
-</main>
-
-<footer>
-    Trabajo Colaborativo - Grupo 5 · Politécnico Grancolombiano · 2026
-</footer>
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="text-center text-xs text-gray-500 py-5 border-t border-gray-200 bg-white">
+        Trabajo Colaborativo - Grupo 5 · Politécnico Grancolombiano · 2026
+    </footer>
 
 </body>
 </html>
