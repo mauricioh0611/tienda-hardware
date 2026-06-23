@@ -51,21 +51,6 @@ Sistema web desarrollado en **PHP 8 + SQLite** que permite gestionar el catálog
 
 ---
 
-## 🖼️ Capturas de Pantalla
-
-| Dashboard | Listado de Productos |
-|:---------:|:--------------------:|
-| KPIs, gráfico por categoría, stock bajo y productos recientes | Búsqueda, filtro, paginación y acciones CRUD |
-
-| Nuevo Producto | Editar Producto |
-|:--------------:|:---------------:|
-| Formulario en grid de 2 columnas con validación | Formulario precargado con datos existentes |
-
-| Login | Registro |
-|:-----:|:--------:|
-| Card centrada con hint de credenciales de prueba | Card centrada con confirmación de contraseña |
-
----
 
 ## 🛠️ Stack Tecnológico
 
