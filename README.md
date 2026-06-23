@@ -248,28 +248,27 @@ docker-compose down
 |:----:|:-----------:|
 | **Institución** | Politécnico Grancolombiano |
 | **Facultad** | Ingeniería y Ciencias Básicas |
-| **Materia** | [Nombre de la materia] |
-| **Profesor** | [Nombre del profesor] |
+| **Materia** | Módulo de Integración Continua |
+| **Profesor** | — |
 | **Período** | 2026 |
 | **Grupo** | Grupo 5 |
 
+> 📌 Desarrollado para fines educativos.
+
 ### 👥 Integrantes del Grupo
 
-<!-- Completar con los nombres de los integrantes -->
-
-| Nombre | Correo |
-|:------:|:------:|
-| [Integrante 1] | [correo@example.com] |
-| [Integrante 2] | [correo@example.com] |
-| [Integrante 3] | [correo@example.com] |
-| [Integrante 4] | [correo@example.com] |
-| [Integrante 5] | [correo@example.com] |
+| Nombre | Rol |
+|:------:|:---:|
+| Nelson Enriquez Aguilar | Desarrollador |
+| Alvaro Holguin Vega | Desarrollador |
+| Mauricio Hurtado | Desarrollador |
+| Nestor Antonio Romero Guerrero | Desarrollador |
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto se distribuye con fines académicos como parte del trabajo colaborativo del **Politécnico Grancolombiano**.
+Este proyecto se distribuye con fines académicos como parte del trabajo colaborativo del **Politécnico Grancolombiano — Módulo de Integración Continua**.
 
 ---
 
