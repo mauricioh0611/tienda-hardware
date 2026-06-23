@@ -409,7 +409,3 @@ sudo certbot certonly --standalone -d tudominio.com
 | `Permission denied` al crear la BD | La carpeta `database/` no tiene permisos de escritura | `sudo chmod -R 777 database/` |
 | Error 502 Bad Gateway | Nginx no puede comunicarse con PHP-FPM | Verifica que el contenedor PHP esté corriendo con `docker ps` |
 | La imagen no se reconstruye | Docker usa caché | Usa `docker-compose up -d --build --no-cache` |
-
----
-
-## 12. Checklist de entrega
