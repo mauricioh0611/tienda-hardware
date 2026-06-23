@@ -1,0 +1,10 @@
+.git/
+.gitignore
+.dockerignore
+database/tienda.db
+database/*.db-journal
+README.md
+REQUERIMIENTOS.md
+*.log
+.DS_Store
+Thumbs.db

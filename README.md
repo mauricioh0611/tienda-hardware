@@ -188,13 +188,41 @@ El sistema crea automáticamente un **usuario administrador** la primera vez que
 
 ## ☁️ Despliegue en Producción
 
-Consulta la **[guía completa de despliegue](REQUERIMIENTOS.md#-despliegue-paso-a-paso-en-aws-lightsail-nginx--php)** en el documento de requerimientos para implementar en AWS Lightsail con:
+### Opción 1 — Manual (Nginx + PHP-FPM)
+
+Consulta la **[guía completa de despliegue manual](REQUERIMIENTOS.md#-despliegue-paso-a-paso-en-aws-lightsail-nginx--php)** en el documento de requerimientos para implementar en AWS Lightsail con:
 
 1. Creación de instancia Lightsail (Ubuntu 22.04 / 24.04)
 2. Instalación de Nginx + PHP-FPM + SQLite
 3. Configuración del sitio con `root` apuntando a `public/`
 4. Asignación de permisos para `www-data`
 5. (Opcional) HTTPS con Certbot
+
+### Opción 2 — Docker (recomendado)
+
+También puedes desplegar con **Docker Compose**, más rápido y sin configuraciones manuales. Consulta la **[guía de despliegue Docker](REQUERIMIENTOS.md#-despliegue-con-docker-en-aws-lightsail)** en el documento de requerimientos.
+
+Archivos Docker incluidos:
+
+| Archivo | Descripción |
+|---------|-------------|
+| [`Dockerfile`](Dockerfile) | Imagen PHP 8.1 Alpine + SQLite |
+| [`docker-compose.yml`](docker-compose.yml) | Orquestación Nginx + PHP |
+| [`docker/nginx.conf`](docker/nginx.conf) | Configuración de Nginx para el contenedor |
+| [`.dockerignore`](.dockerignore) | Exclusiones para la imagen Docker |
+
+Comandos rápidos:
+
+```bash
+# Construir y ejecutar
+docker-compose up -d --build
+
+# Ver logs
+docker-compose logs -f
+
+# Detener
+docker-compose down
+```
 
 ---
 

@@ -263,3 +263,153 @@ sudo certbot --nginx -d tudominio.com
 
 ---
 
+## 11. Despliegue con Docker en AWS Lightsail
+
+Esta sección describe cómo ejecutar la aplicación usando **Docker** y **Docker Compose** en una instancia Lightsail. Es una alternativa al despliegue manual con Nginx + PHP-FPM (sección 10) y ofrece las siguientes ventajas:
+
+- Entorno reproducible y aislado.
+- Sin necesidad de instalar/configurar Nginx y PHP manualmente.
+- Contenedor liviano basado en `php:8.1-fpm-alpine` (~100 MB).
+- Fácil de actualizar con `docker-compose pull && docker-compose up -d`.
+
+### 11.1. Estructura de archivos Docker
+
+```
+tienda-hardware/
+├── Dockerfile              # Imagen PHP 8.1 con SQLite
+├── docker-compose.yml      # Orquestación de contenedores
+├── .dockerignore           # Archivos excluidos de la imagen
+└── docker/
+    └── nginx.conf           # Configuración de Nginx para el contenedor
+```
+
+### 11.2. Requisitos en Lightsail
+
+1. Crea una instancia Lightsail siguiendo los pasos **[10.1](#101-crear-la-instancia)** y **[10.2](#102-conectarse-por-ssh)**.
+2. Una vez conectado por SSH, instala Docker:
+
+```bash
+# Actualizar paquetes
+sudo apt update && sudo apt upgrade -y
+
+# Instalar Docker y Docker Compose
+sudo apt install -y docker.io docker-compose git
+
+# Agregar tu usuario al grupo docker (para no usar sudo)
+sudo usermod -aG docker $ubuntu
+# Cierra sesión y vuelve a entrar para que el cambio surta efecto:
+exit
+# Vuelve a conectarte por SSH
+```
+
+Verifica la instalación:
+
+```bash
+docker --version
+docker-compose --version
+```
+
+### 11.3. Subir el código
+
+Opción A — clonar desde GitHub:
+
+```bash
+cd /home/ubuntu
+git clone https://github.com/TU_USUARIO/TU_REPO.git tienda-hardware
+cd tienda-hardware
+```
+
+Opción B — subir por SCP desde tu PC:
+
+```bash
+# En tu PC local:
+scp -i LightsailDefaultKey.pem -r tienda-hardware ubuntu@TU_IP_ESTATICA:/home/ubuntu/
+
+# En el servidor:
+cd /home/ubuntu/tienda-hardware
+```
+
+### 11.4. Construir y ejecutar
+
+```bash
+# Construir la imagen PHP y levantar los contenedores
+docker-compose up -d --build
+
+# Verificar que estén corriendo
+docker ps
+```
+
+Salida esperada:
+
+```
+CONTAINER ID   IMAGE                      STATUS         PORTS                NAMES
+abc123def456   tienda-hardware-php        Up 2 minutes   9000/tcp             tienda-hardware-php
+def456abc123   nginx:1.25-alpine          Up 2 minutes   0.0.0.0:80->80/tcp   tienda-hardware-nginx
+```
+
+### 11.5. Verificar
+
+Abre en el navegador:
+
+```
+http://TU_IP_ESTATICA/
+```
+
+Debe cargar la página de login. Usa las credenciales por defecto:
+
+| Correo | Contraseña |
+|--------|-----------|
+| `admin@tienda.com` | `admin123` |
+
+### 11.6. Administración de contenedores
+
+| Acción | Comando |
+|--------|---------|
+| Iniciar servicios | `docker-compose up -d` |
+| Detener servicios | `docker-compose down` |
+| Ver logs | `docker-compose logs -f` |
+| Reconstruir imagen | `docker-compose up -d --build` |
+| Actualizar desde GitHub | `git pull && docker-compose up -d --build` |
+| Detener y eliminar volúmenes | `docker-compose down -v` |
+
+### 11.7. Persistencia de la base de datos
+
+La base de datos SQLite se almacena en un **bind mount** en el host:
+
+```
+./database/  →  /var/www/html/database/  (dentro del contenedor PHP)
+```
+
+Esto significa que la BD persiste aunque los contenedores se eliminen. Si quieres empezar de cero:
+
+```bash
+# Detener contenedores y eliminar la BD
+docker-compose down
+rm -f database/tienda.db
+docker-compose up -d --build
+```
+
+### 11.8. (Opcional) HTTPS con dominio propio
+
+Si asocias un dominio, usa Certbot **en el host** (no dentro del contenedor):
+
+```bash
+sudo apt install -y certbot
+sudo certbot certonly --standalone -d tudominio.com
+
+# Luego copia los certificados y configura Nginx
+# o mejor aún: usa Caddy como proxy inverso con HTTPS automático
+```
+
+### 11.9. Solución de problemas frecuentes (Docker)
+
+| Síntoma | Causa probable | Solución |
+|---------|----------------|----------|
+| Error `port 80 is already in use` | Otro servicio (como Nginx) está usando el puerto 80 | `sudo systemctl stop nginx` o cambia el puerto en `docker-compose.yml` |
+| `Permission denied` al crear la BD | La carpeta `database/` no tiene permisos de escritura | `sudo chmod -R 777 database/` |
+| Error 502 Bad Gateway | Nginx no puede comunicarse con PHP-FPM | Verifica que el contenedor PHP esté corriendo con `docker ps` |
+| La imagen no se reconstruye | Docker usa caché | Usa `docker-compose up -d --build --no-cache` |
+
+---
+
+## 12. Checklist de entrega
