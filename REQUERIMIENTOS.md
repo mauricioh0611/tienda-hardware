@@ -148,30 +148,6 @@ La regla de inventario: si `stock <= stock_min`, el producto se muestra con la e
 5. **Editar (`/editar.php?id=N`)** — formulario precargado con los datos del producto.
 6. **Sidebar** — 3 secciones navegables (Dashboard, Productos, Nuevo Producto) + perfil de usuario + cerrar sesión.
 
----
-
-## 9. Cómo implementarlo con Claude Code y VS Code
-
-1. Abre la carpeta del proyecto en **VS Code**.
-2. Instala la extensión recomendada: *PHP Intelephense*.
-3. Lanza **Claude Code** en la terminal integrada (`claude`) dentro de la carpeta del proyecto.
-4. Pídele a Claude Code que genere o ajuste los archivos según este documento, por ejemplo:
-   - "Crea `src/db.php` con conexión PDO a SQLite y migración automática de la tabla `productos`."
-   - "Crea `public/index.php` con el listado en tabla y el formulario de registro usando el tema de `assets/style.css`."
-   - "Añade validación de datos en `public/guardar.php`."
-5. Prueba en local con el servidor embebido de PHP:
-   ```bash
-   php -S 127.0.0.1:8000 -t public
-   ```
-   Abre `http://127.0.0.1:8000` en el navegador.
-6. Versiona los cambios:
-   ```bash
-   git add .
-   git commit -m "MVP gestión de productos e inventario"
-   git push
-   ```
-
----
 
 ## 10. Despliegue paso a paso en AWS Lightsail (Nginx + PHP)
 
