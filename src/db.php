@@ -137,7 +137,7 @@ function verificar_credenciales(string $email, string $password): array|false
  * Registra un nuevo usuario.
  * Devuelve true si se registró correctamente, o un string con el error.
  */
-function registrar_usuario(string $nombre, string $email, string $password): true|string
+function registrar_usuario(string $nombre, string $email, string $password): bool|string
 {
     $pdo = db();
 

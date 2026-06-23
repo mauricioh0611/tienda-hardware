@@ -221,7 +221,7 @@ server {
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.1-fpm.sock;
     }
 
     # Bloquear acceso a archivos sensibles
@@ -236,7 +236,7 @@ sudo ln -s /etc/nginx/sites-available/tienda-hardware /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t            # prueba la sintaxis
 sudo systemctl reload nginx
-sudo systemctl enable nginx php8.3-fpm
+sudo systemctl enable nginx php8.1-fpm
 ```
 
 ### 10.7. Verificar
