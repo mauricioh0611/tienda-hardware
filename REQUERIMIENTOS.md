@@ -25,7 +25,7 @@ El objetivo es centralizar la información de los productos y permitir su regist
 | Base de datos | SQLite (vía PDO) | 3 |
 | Servidor web | Nginx | 1.18+ |
 | Procesador PHP | PHP-FPM | 8.1+ |
-| Frontend | HTML5 + CSS3 (sin framework) | — |
+| Frontend | HTML5 + Tailwind CSS 3 (CDN) | — |
 | Infraestructura | AWS Lightsail (Ubuntu 22.04 / 24.04) | — |
 | Control de versiones | Git + GitHub | — |
 
@@ -57,18 +57,28 @@ Las variables CSS ya están definidas en `public/assets/style.css` con estos nom
 ```
 tienda-hardware/
 ├── public/                  # Raíz pública servida por Nginx (document root)
-│   ├── index.php            # Listado de productos + formulario de registro
-│   ├── guardar.php          # Crea o actualiza un producto (POST)
-│   ├── editar.php           # Formulario de edición
-│   ├── eliminar.php         # Elimina un producto
+│   ├── index.php            # Dashboard + listado + formulario (3 vistas vía ?seccion=)
+│   ├── guardar.php          # Crea o actualiza un producto (POST + CSRF)
+│   ├── editar.php           # Formulario de edición con sidebar layout
+│   ├── eliminar.php         # Elimina un producto (POST + CSRF + auditoría)
+│   ├── login.php            # Inicio de sesión
+│   ├── registro.php         # Registro de usuarios
+│   ├── logout.php           # Cerrar sesión
 │   └── assets/
-│       └── style.css        # Tema visual verde
+│       └── style.css        # Scrollbar personalizado + animaciones
 ├── src/
-│   └── db.php               # Conexión PDO a SQLite + migración + helpers
+│   ├── db.php               # Conexión PDO + migración + helpers de auth y CSRF
+│   └── layout.php           # Layout con sidebar, navbar y footer
+├── docker/
+│   └── nginx.conf           # Configuración Nginx para Docker
 ├── database/
 │   ├── schema.sql           # Esquema SQL de referencia
 │   └── tienda.db            # Base de datos (se genera sola; NO se versiona)
+├── Dockerfile               # Imagen PHP 8.1 Alpine + SQLite
+├── docker-compose.yml       # Orquestación Nginx + PHP
+├── .dockerignore
 ├── .gitignore
+├── REQUERIMIENTOS.md
 └── README.md
 ```
 
@@ -103,11 +113,14 @@ La regla de inventario: si `stock <= stock_min`, el producto se muestra con la e
 | RF-01 | Registrar un producto | El usuario completa el formulario y el producto queda guardado y visible en el listado. |
 | RF-02 | Listar productos | La página principal muestra todos los productos en una tabla (nombre, categoría, marca, precio, stock, acciones). |
 | RF-03 | Editar un producto | Se pueden modificar todos los campos de un producto existente. |
-| RF-04 | Eliminar un producto | Con confirmación previa, el producto se elimina del listado. |
+| RF-04 | Eliminar un producto | Con confirmación previa y mediante POST con CSRF, el producto se elimina. |
 | RF-05 | Validar datos de entrada | Nombre obligatorio; precio y stock no negativos; se muestra mensaje de error si falla. |
-| RF-06 | Alertar stock bajo | Si `stock <= stock_min`, el producto se resalta como "Bajo". |
-| RF-07 | Clasificar por categoría | El producto se asocia a una categoría seleccionable. |
-| RF-08 | Mostrar mensajes de retroalimentación | Tras crear, editar o eliminar, se muestra una alerta de éxito o error. |
+| RF-06 | Alertar stock bajo | Si `stock <= stock_min`, el producto se muestra con badge rojo "Bajo". |
+| RF-07 | Clasificar por categoría | El producto se asocia a una categoría seleccionable (9 categorías). |
+| RF-08 | Mostrar mensajes de retroalimentación | Flash messages animados desde sesión tras cada operación. |
+| RF-09 | Dashboard con KPIs | 4 indicadores en tiempo real: total productos, stock bajo, valor inventario, categorías. |
+| RF-10 | Búsqueda y filtros | Buscar por nombre/marca/descripción + filtrar por categoría. |
+| RF-11 | Paginación | Listado paginado automáticamente (10 productos por página). |
 
 ---
 
@@ -115,22 +128,25 @@ La regla de inventario: si `stock <= stock_min`, el producto se muestra con la e
 
 | ID | Requerimiento |
 |----|---------------|
-| RNF-01 | **Usabilidad:** interfaz clara, responsiva y con el tema verde definido en la sección 3. |
-| RNF-02 | **Seguridad:** uso de consultas preparadas (PDO) para prevenir inyección SQL; escape de salida HTML para prevenir XSS; la base de datos no es accesible desde la web. |
-| RNF-03 | **Portabilidad:** SQLite no requiere servidor de BD aparte; el proyecto corre en cualquier host con PHP. |
-| RNF-04 | **Mantenibilidad:** código organizado por responsabilidades (vista, controladores de acción, capa de datos) y comentado en español. |
-| RNF-05 | **Rendimiento:** respuestas por debajo de 1 segundo para catálogos de hasta varios miles de productos. |
-| RNF-06 | **Disponibilidad:** el servicio se ejecuta como demonio (Nginx + PHP-FPM) y se reinicia automáticamente con el sistema. |
-| RNF-07 | **Compatibilidad:** funciona en los navegadores modernos (Chrome, Firefox, Edge). |
-| RNF-08 | **Trazabilidad:** cada producto guarda su fecha de creación. |
+| RNF-01 | **Usabilidad:** interfaz con sidebar responsivo, tema verde y animaciones. Tailwind CSS via CDN. |
+| RNF-02 | **Seguridad:** consultas preparadas (PDO) anti-SQL injection; escape HTML (`htmlspecialchars`) anti-XSS; CSRF tokens en formularios POST; `session_regenerate_id` en login/registro; BD fuera de `public/`. |
+| RNF-03 | **Portabilidad:** SQLite embebido; el proyecto corre en cualquier host con PHP. |
+| RNF-04 | **Mantenibilidad:** código organizado en capas (`src/db.php`, `src/layout.php`, controladores en `public/`). |
+| RNF-05 | **Rendimiento:** respuestas < 1 segundo para catálogos de hasta miles de productos. |
+| RNF-06 | **Trazabilidad:** cada producto guarda su fecha de creación; tabla `auditoria` registra cada acción (crear, editar, eliminar). |
+| RNF-07 | **Disponibilidad:** despliegue como demonio (Nginx + PHP-FPM) o contenedores Docker. |
+| RNF-08 | **Compatibilidad:** funciona en Chrome, Firefox y Edge (versiones modernas). |
 
 ---
 
 ## 8. Flujo de pantallas
 
-1. **Inicio (`index.php`)** — barra verde superior + tarjeta "Inventario de Productos" (tabla) + tarjeta "Registrar Producto" (formulario). Botón verde "Guardar Producto".
-2. **Editar (`editar.php`)** — mismo formulario precargado; botón verde "Actualizar" y botón gris "Cancelar".
-3. **Acciones en la tabla** — botón gris "Editar" y botón rojo "Eliminar" (con confirmación) por cada fila.
+1. **Login (`/login.php`)** — card centrada con formulario de inicio de sesión.
+2. **Dashboard (`/index.php?seccion=dashboard`)** — sidebar verde con KPIs, gráfico de categorías, alertas de stock bajo y productos recientes.
+3. **Productos (`/index.php?seccion=productos`)** — listado completo con búsqueda, filtro por categoría y paginación.
+4. **Nuevo Producto (`/index.php?seccion=registrar`)** — formulario en grid de 2 columnas.
+5. **Editar (`/editar.php?id=N`)** — formulario precargado con los datos del producto.
+6. **Sidebar** — 3 secciones navegables (Dashboard, Productos, Nuevo Producto) + perfil de usuario + cerrar sesión.
 
 ---
 

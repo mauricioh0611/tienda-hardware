@@ -6,6 +6,7 @@
 
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php&logoColor=white)](https://php.net)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/Licencia-Academic%20Free-2E9E2E)](LICENSE)
 
 </div>
@@ -15,9 +16,11 @@
 ## 📋 Tabla de Contenidos
 
 - [Descripción del Proyecto](#-descripción-del-proyecto)
-- [Requerimientos del Sistema](#-requerimientos-del-sistema)
+- [Capturas de Pantalla](#-capturas-de-pantalla)
 - [Stack Tecnológico](#-stack-tecnológico)
 - [Funcionalidades](#-funcionalidades)
+- [Dashboard](#-dashboard)
+- [Seguridad](#-seguridad)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Instalación y Ejecución Local](#-instalación-y-ejecución-local)
 - [Autenticación](#-autenticación)
@@ -33,22 +36,34 @@
 Sistema web desarrollado en **PHP 8 + SQLite** que permite gestionar el catálogo de productos y el inventario de una tienda de componentes de hardware. El sistema reemplaza los procesos manuales basados en hojas de cálculo, centralizando la información de los productos y permitiendo operaciones **CRUD** (Crear, Leer, Actualizar, Eliminar) de forma ágil y segura.
 
 ### Principales características:
+- Dashboard con **KPIs** en tiempo real (total productos, stock bajo, valor inventario, categorías)
+- **Sidebar** lateral responsivo con navegación entre Dashboard, Productos y Nuevo Producto
 - Registro y administración de productos (procesadores, tarjetas gráficas, memorias RAM, almacenamiento, fuentes de poder, periféricos, etc.)
 - Alerta visual de **stock bajo** para control de inventario
-- Interfaz responsiva con tema visual verde
+- **Búsqueda** por nombre, marca y descripción + **filtro** por categoría
+- **Paginación** automática (10 productos por página)
+- **Gráfico de barras** de productos por categoría
+- Interfaz moderna con **Tailwind CSS** y tema visual verde
 - Sistema de **autenticación** con registro de usuarios y sesiones seguras
+- **Protección CSRF** en todos los formularios
+- **Auditoría** de acciones (crear, editar, eliminar productos)
+- Sistema de **flash messages** desde sesión
 
 ---
 
-## ⚙️ Requerimientos del Sistema
+## 🖼️ Capturas de Pantalla
 
-| Componente | Especificación |
-|------------|---------------|
-| **PHP** | 8.1 o superior |
-| **Servidor web** | Nginx 1.18+ (producción) / PHP built-in (desarrollo) |
-| **Base de datos** | SQLite 3 (vía PDO) |
-| **PHP-FPM** | 8.1+ (producción) |
-| **Navegadores** | Chrome, Firefox, Edge (versiones modernas) |
+| Dashboard | Listado de Productos |
+|:---------:|:--------------------:|
+| KPIs, gráfico por categoría, stock bajo y productos recientes | Búsqueda, filtro, paginación y acciones CRUD |
+
+| Nuevo Producto | Editar Producto |
+|:--------------:|:---------------:|
+| Formulario en grid de 2 columnas con validación | Formulario precargado con datos existentes |
+
+| Login | Registro |
+|:-----:|:--------:|
+| Card centrada con hint de credenciales de prueba | Card centrada con confirmación de contraseña |
 
 ---
 
@@ -60,10 +75,9 @@ Sistema web desarrollado en **PHP 8 + SQLite** que permite gestionar el catálog
 |:----:|:----------:|:-------:|
 | **Backend** | ![PHP](https://img.shields.io/badge/PHP-777BB4?logo=php&logoColor=white) | 8.1+ |
 | **Base de Datos** | ![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white) | 3.x |
-| **Frontend** | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white) | Estándar |
+| **Frontend** | ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white) | 3.x (CDN) |
 | **Servidor** | ![Nginx](https://img.shields.io/badge/Nginx-009639?logo=nginx&logoColor=white) | 1.18+ |
 | **Infraestructura** | ![AWS](https://img.shields.io/badge/AWS%20Lightsail-FF9900?logo=amazonaws&logoColor=white) | Ubuntu 22.04 / 24.04 |
-
 
 </div>
 
@@ -78,24 +92,62 @@ Sistema web desarrollado en **PHP 8 + SQLite** que permite gestionar el catálog
 | RF-01 | **Registrar producto** | Formulario completo con validación de datos |
 | RF-02 | **Listar productos** | Tabla con nombre, categoría, marca, precio, stock y acciones |
 | RF-03 | **Editar producto** | Modificación de todos los campos de un producto existente |
-| RF-04 | **Eliminar producto** | Eliminación con confirmación previa |
+| RF-04 | **Eliminar producto** | Eliminación con confirmación previa y protección CSRF |
 | RF-05 | **Validar datos** | Nombre obligatorio; precio y stock no negativos |
-| RF-06 | **Alerta stock bajo** | Resaltado visual cuando `stock ≤ stock_min` |
+| RF-06 | **Alerta stock bajo** | Badge rojo `rounded-full` cuando `stock ≤ stock_min` |
 | RF-07 | **Clasificar por categoría** | 9 categorías predefinidas |
-| RF-08 | **Mensajes de retroalimentación** | Alertas de éxito/error tras cada operación |
+| RF-08 | **Mensajes de retroalimentación** | Flash messages animados desde sesión |
+| RF-09 | **Dashboard con KPIs** | Métricas en tiempo real con íconos |
+| RF-10 | **Búsqueda y filtros** | Búsqueda por nombre/marca/descripción + filtro por categoría |
 
 ### No Funcionales (RNF)
 
 | ID | Funcionalidad |
 |:--:|:-------------:|
-| RNF-01 | Interfaz responsiva con tema visual verde |
+| RNF-01 | Interfaz responsiva con **sidebar colapsable** y tema visual verde |
 | RNF-02 | Consultas preparadas (PDO) contra inyección SQL y escape HTML (XSS) |
 | RNF-03 | SQLite embebido — sin servidor de BD externo |
-| RNF-04 | Código organizado por capas y comentado |
+| RNF-04 | Código organizado por capas (`src/layout.php` + `src/db.php`) |
 | RNF-05 | Respuestas < 1 segundo para catálogos de miles de productos |
-| RNF-06 | Servicio como demonio (Nginx + PHP-FPM) |
+| RNF-06 | Servicio como demonio (Nginx + PHP-FPM) o Docker |
 | RNF-07 | Compatible con Chrome, Firefox y Edge |
 | RNF-08 | Trazabilidad con fecha de creación en cada producto |
+| RNF-09 | **Protección CSRF** con tokens por sesión |
+| RNF-10 | **Auditoría** de acciones (crear, editar, eliminar) |
+
+---
+
+## 📊 Dashboard
+
+El dashboard ofrece una vista ejecutiva del inventario con:
+
+### KPIs (4 indicadores)
+| Indicador | Descripción |
+|:---------:|:-----------:|
+| 📦 **Productos** | Total de productos registrados |
+| ⚠️ **Stock Bajo** | Productos con stock ≤ stock mínimo |
+| 💰 **Valor Inventario** | Suma total (precio × stock) formateado en COP |
+| 🗂️ **Categorías** | Cantidad de categorías distintas |
+
+### Componentes del Dashboard
+1. **Gráfico de barras** — Distribución de productos por categoría con barras proporcionales animadas
+2. **Alertas de Stock Bajo** — Lista de productos críticos con cantidad actual y stock mínimo
+3. **Productos Recientes** — Tabla con los últimos 5 productos registrados
+
+---
+
+## 🔐 Seguridad
+
+| Medida | Implementación |
+|:------:|:--------------:|
+| **CSRF** | Tokens únicos por sesión (`random_bytes(32)` + `hash_equals()`) en todos los formularios POST |
+| **XSS** | Escape de salida HTML con `htmlspecialchars($val, ENT_QUOTES)` |
+| **SQL Injection** | Consultas preparadas con PDO (bound parameters) |
+| **Session Fixation** | `session_regenerate_id(true)` en login y registro |
+| **Contraseñas** | Hash bcrypt con `password_hash()` + `password_verify()` |
+| **Flash Messages** | Mensajes vía sesión (`$_SESSION['_flash']`), no por URL |
+| **Auditoría** | Tabla `auditoria` registra cada acción con usuario, producto y detalle |
+| **BD no accesible** | Base de datos fuera de `public/` |
 
 ---
 
@@ -104,20 +156,26 @@ Sistema web desarrollado en **PHP 8 + SQLite** que permite gestionar el catálog
 ```
 tienda-hardware/
 ├── public/                       # Raíz pública (document root)
-│   ├── index.php                 # Listado de productos + formulario de registro
+│   ├── index.php                 # Dashboard + listado + formulario (3 vistas)
 │   ├── guardar.php               # Crear o actualizar producto (POST)
 │   ├── editar.php                # Formulario de edición precargado
-│   ├── eliminar.php              # Eliminar producto
+│   ├── eliminar.php              # Eliminar producto (POST + CSRF)
 │   ├── login.php                 # Inicio de sesión
 │   ├── registro.php              # Registro de usuarios
 │   ├── logout.php                # Cerrar sesión
 │   └── assets/
-│       └── style.css             # Tema visual verde
+│       └── style.css             # Scrollbar personalizado + animaciones
 ├── src/
-│   └── db.php                    # Conexión PDO + migración + helpers de autenticación
+│   ├── db.php                    # Conexión PDO + migración + helpers
+│   └── layout.php                # Layout con sidebar + navbar + footer
+├── docker/
+│   ├── nginx.conf                # Configuración Nginx para contenedor
 ├── database/
 │   ├── schema.sql                # Esquema SQL de referencia
-│   └── tienda.db                 # Base de datos (se genera sola — NO se versiona)
+│   └── tienda.db                 # Base de datos (NO se versiona)
+├── Dockerfile                    # Imagen PHP 8.1 Alpine + SQLite
+├── docker-compose.yml            # Orquestación Nginx + PHP
+├── .dockerignore                 # Exclusiones para Docker
 ├── REQUERIMIENTOS.md             # Documento completo de requerimientos
 ├── README.md                     # Este archivo
 └── .gitignore                    # Archivos ignorados por Git
@@ -151,7 +209,7 @@ php -S 127.0.0.1:8000 -t public
 http://127.0.0.1:8000
 ```
 
-> 🎉 La base de datos `database/tienda.db` se crea automáticamente la primera vez, junto con 5 productos de ejemplo.
+> 🎉 La base de datos `database/tienda.db` se crea automáticamente la primera vez, junto con 5 productos de ejemplo y un usuario administrador.
 
 ---
 
@@ -169,7 +227,8 @@ El sistema cuenta con un módulo de autenticación que protege el acceso al inve
 - Contraseñas almacenadas con **bcrypt** (`password_hash()` + `password_verify()`)
 - Sesiones PHP con destrucción segura al cerrar sesión
 - Validación de email único en el registro
-- Protección CSRF mediante verificación de sesión
+- Protección CSRF mediante token por sesión
+- Regeneración de ID de sesión (`session_regenerate_id`) en login/registro
 
 ---
 
