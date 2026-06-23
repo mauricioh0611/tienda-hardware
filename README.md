@@ -23,7 +23,6 @@
 - [Autenticación](#-autenticación)
 - [Usuarios de Prueba](#-usuarios-de-prueba)
 - [Despliegue en Producción](#-despliegue-en-producción)
-- [Capturas de Pantalla](#-capturas-de-pantalla)
 - [Información Académica](#-información-académica)
 - [Licencia](#-licencia)
 
@@ -223,23 +222,6 @@ docker-compose logs -f
 # Detener
 docker-compose down
 ```
-
----
-
-## 📸 Capturas de Pantalla
-
-<!--
-  Agrega aquí capturas de pantalla de tu aplicación desplegada.
-  Puedes subir las imágenes a una carpeta /screenshots/ en el repo.
-
-  ![Login](screenshots/login.png)
-  ![Registro](screenshots/registro.png)
-  ![Inventario](screenshots/inventario.png)
-  ![Editar Producto](screenshots/editar.png)
--->
-
-*(Pendiente de agregar capturas)*
-
 ---
 
 ## 🎓 Información Académica
