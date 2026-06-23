@@ -249,7 +249,7 @@ docker-compose down
 | **Institución** | Politécnico Grancolombiano |
 | **Facultad** | Ingeniería y Ciencias Básicas |
 | **Materia** | Módulo de Integración Continua |
-| **Profesor** | — |
+| **Profesor** | Jesús Figueroa Guerrero |
 | **Período** | 2026 |
 | **Grupo** | Grupo 5 |
 
